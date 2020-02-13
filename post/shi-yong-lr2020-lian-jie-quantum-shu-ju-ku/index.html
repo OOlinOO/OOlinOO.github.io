@@ -1,0 +1,304 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>使用LR2020连接Quantum数据库 | Gridea</title>
+<meta name="description" content="温故而知新" />
+<link rel="shortcut icon" href="https://OOlinOO.github.io/favicon.ico?v=1581594590738">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://OOlinOO.github.io/styles/main.css">
+
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://OOlinOO.github.io">
+  <img class="avatar" src="https://OOlinOO.github.io/images/avatar.png?v=1581594590738" alt="">
+  </a>
+  <h1 class="site-title">
+    Gridea
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+      
+        <a href="/" class="menu">
+          数据库相关
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              使用LR2020连接Quantum数据库
+            </h2>
+            <div class="post-info">
+              <span>
+                2020-02-13
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h1 id="使用lr2020连接quantum数据库">使用LR2020连接Quantum数据库</h1>
+<h1 id="1-新建脚本">1 新建脚本</h1>
+<h2 id="选择划红线的选项">选择划红线的选项<br>
+<img src="https://OOlinOO.github.io/post-images/1581594498247.PNG" alt=""></h2>
+<h1 id="2-运行时设置">2 运行时设置</h1>
+<h2 id="21-配置jdk">2.1 配置JDK</h2>
+<p>这里配置脚本运行时的环境，我的运行环境是JDK1.8。<br>
+软件默认从系统环境变量找JDK，如果找不到请自行设置<br>
+<img src="https://OOlinOO.github.io/post-images/1581594510540.PNG" alt=""></p>
+<h2 id="22-配置连接驱动">2.2 配置连接驱动</h2>
+<p>将驱动加入Classpath条目下<br>
+<img src="https://OOlinOO.github.io/post-images/1581594522098.PNG" alt=""></p>
+<h2 id="23-保存设置">2.3 保存设置</h2>
+<hr>
+<h1 id="3-脚本编辑">3 脚本编辑</h1>
+<h2 id="31-编辑actions文件">3.1 编辑Actions文件</h2>
+<p>/*</p>
+<ul>
+<li>LoadRunner Java script. (Build: <em>build_number</em>)</li>
+<li></li>
+<li>Script Description:</li>
+<li></li>
+</ul>
+<p>*/</p>
+<p>import lrapi.lr;<br>
+import java.sql.Connection;<br>
+import java.sql.DriverManager;<br>
+import java.sql.PreparedStatement;<br>
+import java.sql.ResultSet;<br>
+import java.sql.SQLException;<br>
+public class Actions<br>
+{</p>
+<pre><code>public int init() throws Throwable {
+
+	return 0;
+}//end of init
+
+
+public int action() throws Throwable {
+	//DBManager.getConnection();
+	DBManager.insert(40000);//
+	return 0;
+}//end of action
+
+
+public int end() throws Throwable {
+	return 0;
+}//end of end
+</code></pre>
+<p>}<br>
+class DBManager{<br>
+private static final String DRIVER = &quot;com.mysql.cj.jdbc.Driver&quot;;<br>
+private static final String URL = &quot;jdbc:mysql://192.168.43.222:3306/test?serverTimezone=UTC&amp;useSSL=false&quot;;<br>
+private static final String USER = &quot;u1&quot;;<br>
+private static final String passwd = &quot;123456&quot;;<br>
+private DBManager() {<br>
+}<br>
+public static Connection getConnection() {<br>
+Connection con = null;<br>
+try {<br>
+Class.forName(DRIVER).newInstance();<br>
+con = DriverManager.getConnection(URL, USER, passwd);<br>
+System.out.println(&quot;连接成功&quot;);<br>
+} catch (Exception e) {<br>
+throw new RuntimeException(&quot;无法连接数据库&quot;);<br>
+}<br>
+return con;</p>
+<pre><code>}
+//数据插入操作
+public static void insert(int dataSize) {
+	Connection connection = null;
+	PreparedStatement preparedStatement = null;
+	connection = DBManager.getConnection();
+	String sql = &quot;insert into people(id,username,password) values(?,?,?)&quot;;
+	try {
+		preparedStatement = connection.prepareStatement(sql);
+		connection.setAutoCommit(false);//关闭自动提交
+		for(int i=1;i&lt;dataSize;i++){
+			preparedStatement.setInt(1,i);
+			preparedStatement.setString(2, &quot;user&quot;+i);
+			preparedStatement.setString(3, &quot;pwd&quot;+i);
+			preparedStatement.addBatch();//增加批处理
+        //设置批处理数据缓冲大小
+        	if(i%20000==0){
+            	preparedStatement.executeBatch();//
+        	}
+		}
+		connection.commit();
+	} catch (SQLException e) {
+		e.printStackTrace();
+	} 
+	/*关闭与数据库的连接运行会报错，但不会影响数据的插入操作，不过这里还是选择不关闭连接
+	try {
+		connection.close();
+		preparedStatement.close();
+	} catch (SQLException e) {
+		e.printStackTrace();
+	}*/
+}
+</code></pre>
+<p>}</p>
+<h2 id="32-数据库相关">3.2 数据库相关</h2>
+<p>建库建表<br>
+CREATE DATABASE test;<br>
+use test;<br>
+CREATE TABLE people (<br>
+id int(11) DEFAULT NULL,<br>
+username varchar(20) DEFAULT NULL,<br>
+password varchar(20) DEFAULT NULL<br>
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;</p>
+<p>备注：</p>
+<ol>
+<li>创建一个远程用户u1，密码为123456，并赋予相关权限</li>
+<li>记得关闭Linux下的防火墙</li>
+</ol>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E4%BD%BF%E7%94%A8lr2020%E8%BF%9E%E6%8E%A5quantum%E6%95%B0%E6%8D%AE%E5%BA%93">使用LR2020连接Quantum数据库</a></li>
+<li><a href="#1-%E6%96%B0%E5%BB%BA%E8%84%9A%E6%9C%AC">1 新建脚本</a>
+<ul>
+<li><a href="#%E9%80%89%E6%8B%A9%E5%88%92%E7%BA%A2%E7%BA%BF%E7%9A%84%E9%80%89%E9%A1%B9">选择划红线的选项<br>
+!</a></li>
+</ul>
+</li>
+<li><a href="#2-%E8%BF%90%E8%A1%8C%E6%97%B6%E8%AE%BE%E7%BD%AE">2 运行时设置</a>
+<ul>
+<li><a href="#21-%E9%85%8D%E7%BD%AEjdk">2.1 配置JDK</a></li>
+<li><a href="#22-%E9%85%8D%E7%BD%AE%E8%BF%9E%E6%8E%A5%E9%A9%B1%E5%8A%A8">2.2 配置连接驱动</a></li>
+<li><a href="#23-%E4%BF%9D%E5%AD%98%E8%AE%BE%E7%BD%AE">2.3 保存设置</a></li>
+</ul>
+</li>
+<li><a href="#3-%E8%84%9A%E6%9C%AC%E7%BC%96%E8%BE%91">3 脚本编辑</a>
+<ul>
+<li><a href="#31-%E7%BC%96%E8%BE%91actions%E6%96%87%E4%BB%B6">3.1 编辑Actions文件</a></li>
+<li><a href="#32-%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9B%B8%E5%85%B3">3.2 数据库相关</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://OOlinOO.github.io/post/hello-gridea">
+              <h3 class="post-title">
+                Hello Gridea
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | 
+  <a class="rss" href="https://OOlinOO.github.io/atom.xml" target="_blank">RSS</a>
+</div>
+
+<script>
+  hljs.initHighlightingOnLoad()
+
+  let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+  // This should probably be throttled.
+  // Especially because it triggers during smooth scrolling.
+  // https://lodash.com/docs/4.17.10#throttle
+  // You could do like...
+  // window.addEventListener("scroll", () => {
+  //    _.throttle(doThatStuff, 100);
+  // });
+  // Only not doing it here to keep this Pen dependency-free.
+
+  window.addEventListener("scroll", event => {
+    let fromTop = window.scrollY;
+
+    mainNavLinks.forEach((link, index) => {
+      let section = document.getElementById(decodeURI(link.hash).substring(1));
+      let nextSection = null
+      if (mainNavLinks[index + 1]) {
+        nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+      }
+      if (section.offsetTop <= fromTop) {
+        if (nextSection) {
+          if (nextSection.offsetTop > fromTop) {
+            link.classList.add("current");
+          } else {
+            link.classList.remove("current");    
+          }
+        } else {
+          link.classList.add("current");
+        }
+      } else {
+        link.classList.remove("current");
+      }
+    });
+  });
+
+</script>
+
+      </div>
+    </div>
+  </body>
+</html>

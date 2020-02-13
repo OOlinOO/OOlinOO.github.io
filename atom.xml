@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://OOlinOO.github.io</id>
     <title>Gridea</title>
-    <updated>2020-02-13T10:11:12.074Z</updated>
+    <updated>2020-02-13T11:50:07.892Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://OOlinOO.github.io"/>
     <link rel="self" href="https://OOlinOO.github.io/atom.xml"/>
@@ -11,12 +11,126 @@
     <icon>https://OOlinOO.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Gridea</rights>
     <entry>
-        <title type="html"><![CDATA[123]]></title>
-        <id>https://OOlinOO.github.io/post/123</id>
-        <link href="https://OOlinOO.github.io/post/123">
+        <title type="html"><![CDATA[使用LR2020连接Quantum数据库]]></title>
+        <id>https://OOlinOO.github.io/post/shi-yong-lr2020-lian-jie-quantum-shu-ju-ku</id>
+        <link href="https://OOlinOO.github.io/post/shi-yong-lr2020-lian-jie-quantum-shu-ju-ku">
         </link>
-        <updated>2020-02-13T10:10:50.000Z</updated>
-        <content type="html"><![CDATA[<figure data-type="image" tabindex="1"><img src="https://OOlinOO.github.io/post-images/1581588657601.jpg" alt=""></figure>
+        <updated>2020-02-13T10:15:23.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="使用lr2020连接quantum数据库">使用LR2020连接Quantum数据库</h1>
+<h1 id="1-新建脚本">1 新建脚本</h1>
+<h2 id="选择划红线的选项">选择划红线的选项<br>
+<img src="https://OOlinOO.github.io/post-images/1581594498247.PNG" alt=""></h2>
+<h1 id="2-运行时设置">2 运行时设置</h1>
+<h2 id="21-配置jdk">2.1 配置JDK</h2>
+<p>这里配置脚本运行时的环境，我的运行环境是JDK1.8。<br>
+软件默认从系统环境变量找JDK，如果找不到请自行设置<br>
+<img src="https://OOlinOO.github.io/post-images/1581594510540.PNG" alt=""></p>
+<h2 id="22-配置连接驱动">2.2 配置连接驱动</h2>
+<p>将驱动加入Classpath条目下<br>
+<img src="https://OOlinOO.github.io/post-images/1581594522098.PNG" alt=""></p>
+<h2 id="23-保存设置">2.3 保存设置</h2>
+<hr>
+<h1 id="3-脚本编辑">3 脚本编辑</h1>
+<h2 id="31-编辑actions文件">3.1 编辑Actions文件</h2>
+<p>/*</p>
+<ul>
+<li>LoadRunner Java script. (Build: <em>build_number</em>)</li>
+<li></li>
+<li>Script Description:</li>
+<li></li>
+</ul>
+<p>*/</p>
+<p>import lrapi.lr;<br>
+import java.sql.Connection;<br>
+import java.sql.DriverManager;<br>
+import java.sql.PreparedStatement;<br>
+import java.sql.ResultSet;<br>
+import java.sql.SQLException;<br>
+public class Actions<br>
+{</p>
+<pre><code>public int init() throws Throwable {
+
+	return 0;
+}//end of init
+
+
+public int action() throws Throwable {
+	//DBManager.getConnection();
+	DBManager.insert(40000);//
+	return 0;
+}//end of action
+
+
+public int end() throws Throwable {
+	return 0;
+}//end of end
+</code></pre>
+<p>}<br>
+class DBManager{<br>
+private static final String DRIVER = &quot;com.mysql.cj.jdbc.Driver&quot;;<br>
+private static final String URL = &quot;jdbc:mysql://192.168.43.222:3306/test?serverTimezone=UTC&amp;useSSL=false&quot;;<br>
+private static final String USER = &quot;u1&quot;;<br>
+private static final String passwd = &quot;123456&quot;;<br>
+private DBManager() {<br>
+}<br>
+public static Connection getConnection() {<br>
+Connection con = null;<br>
+try {<br>
+Class.forName(DRIVER).newInstance();<br>
+con = DriverManager.getConnection(URL, USER, passwd);<br>
+System.out.println(&quot;连接成功&quot;);<br>
+} catch (Exception e) {<br>
+throw new RuntimeException(&quot;无法连接数据库&quot;);<br>
+}<br>
+return con;</p>
+<pre><code>}
+//数据插入操作
+public static void insert(int dataSize) {
+	Connection connection = null;
+	PreparedStatement preparedStatement = null;
+	connection = DBManager.getConnection();
+	String sql = &quot;insert into people(id,username,password) values(?,?,?)&quot;;
+	try {
+		preparedStatement = connection.prepareStatement(sql);
+		connection.setAutoCommit(false);//关闭自动提交
+		for(int i=1;i&lt;dataSize;i++){
+			preparedStatement.setInt(1,i);
+			preparedStatement.setString(2, &quot;user&quot;+i);
+			preparedStatement.setString(3, &quot;pwd&quot;+i);
+			preparedStatement.addBatch();//增加批处理
+        //设置批处理数据缓冲大小
+        	if(i%20000==0){
+            	preparedStatement.executeBatch();//
+        	}
+		}
+		connection.commit();
+	} catch (SQLException e) {
+		e.printStackTrace();
+	} 
+	/*关闭与数据库的连接运行会报错，但不会影响数据的插入操作，不过这里还是选择不关闭连接
+	try {
+		connection.close();
+		preparedStatement.close();
+	} catch (SQLException e) {
+		e.printStackTrace();
+	}*/
+}
+</code></pre>
+<p>}</p>
+<h2 id="32-数据库相关">3.2 数据库相关</h2>
+<p>建库建表<br>
+CREATE DATABASE test;<br>
+use test;<br>
+CREATE TABLE people (<br>
+id int(11) DEFAULT NULL,<br>
+username varchar(20) DEFAULT NULL,<br>
+password varchar(20) DEFAULT NULL<br>
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;</p>
+<p>备注：</p>
+<ol>
+<li>创建一个远程用户u1，密码为123456，并赋予相关权限</li>
+<li>记得关闭Linux下的防火墙</li>
+</ol>
 ]]></content>
     </entry>
     <entry>
